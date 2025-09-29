@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
 
 void main() {
   runApp(const MyApp());
@@ -7,114 +10,132 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
+      title: 'Flutter PDF Export Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const HomePage(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomePageState extends State<HomePage> {
+  // Sample data to be displayed and exported
+  final List<Map<String, dynamic>> _salesData = [
+    {'id': 1, 'product': 'لابتوب', 'price': 4500.0, 'quantity': 2, 'total': 9000.0},
+    {'id': 2, 'product': 'ماوس', 'price': 120.0, 'quantity': 5, 'total': 600.0},
+    {'id': 3, 'product': 'شاشة', 'price': 1800.0, 'quantity': 3, 'total': 5400.0},
+    {'id': 4, 'product': 'لوحة مفاتيح', 'price': 250.0, 'quantity': 4, 'total': 1000.0},
+    {'id': 5, 'product': 'سماعات', 'price': 350.0, 'quantity': 10, 'total': 3500.0},
+  ];
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  // Column headers for the DataTable
+  final List<String> _columns = ['الرقم', 'المنتج', 'السعر', 'الكمية', 'الإجمالي'];
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('تصدير البيانات إلى PDF'),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text('$_counter', style: Theme.of(context).textTheme.headlineMedium),
-          ],
+      body: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: DataTable(
+              columns: _columns.map((col) => DataColumn(label: Text(col))).toList(),
+              rows: _salesData.map((sale) {
+                return DataRow(cells: [
+                  DataCell(Text(sale['id'].toString())),
+                  DataCell(Text(sale['product'].toString())),
+                  DataCell(Text(sale['price'].toString())),
+                  DataCell(Text(sale['quantity'].toString())),
+                  DataCell(Text(sale['total'].toString())),
+                ]);
+              }).toList(),
+            ),
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        onPressed: _exportToPdf,
+        tooltip: 'تصدير PDF',
+        child: const Icon(Icons.picture_as_pdf),
+      ),
+    );
+  }
+
+  /// Generates and saves a PDF document with all the table data.
+  Future<void> _exportToPdf() async {
+    final doc = pw.Document();
+
+    // Load an Arabic font
+    final font = await PdfGoogleFonts.cairoRegular();
+
+    // Headers for the PDF table, ensuring they match the data keys
+    final headers = ['الإجمالي', 'الكمية', 'السعر', 'المنتج', 'الرقم'];
+
+    // Map the sales data to a list of lists for the PDF table
+    final data = _salesData.map((sale) {
+      return [
+        sale['total'].toString(),
+        sale['quantity'].toString(),
+        sale['price'].toString(),
+        sale['product'],
+        sale['id'].toString(),
+      ];
+    }).toList();
+
+    doc.addPage(
+      pw.Page(
+        theme: pw.ThemeData.withFont(base: font),
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Directionality(
+            textDirection: pw.TextDirection.rtl,
+            child: pw.Column(
+              children: [
+                pw.Header(
+                  level: 0,
+                  child: pw.Text('تقرير المبيعات', style: pw.TextStyle(fontSize: 24)),
+                ),
+                pw.Table.fromTextArray(
+                  headers: headers,
+                  data: data,
+                  border: pw.TableBorder.all(),
+                  headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                  cellHeight: 30,
+                  cellAlignments: {
+                    0: pw.Alignment.centerRight,
+                    1: pw.Alignment.centerRight,
+                    2: pw.Alignment.centerRight,
+                    3: pw.Alignment.centerRight,
+                    4: pw.Alignment.centerRight,
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    // Use the printing package to share or save the PDF
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => doc.save(),
     );
   }
 }
